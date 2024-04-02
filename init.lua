@@ -28,16 +28,16 @@ require('lazy').setup({
 	
 
 	{
-	    -- Autocompletion
+	    -- autocompletion
 	    'hrsh7th/nvim-cmp',
 	    dependencies = {
-	      -- Snippet Engine & its associated nvim-cmp source
+	      -- snippet engine & its associated nvim-cmp source
 	      {
-		'L3MON4D3/LuaSnip',
+		'l3mon4d3/luasnip',
 		build = (function()
-		  -- Build Step is needed for regex support in snippets
-		  -- This step is not supported in many windows environments
-		  -- Remove the below condition to re-enable on windows
+		  -- build step is needed for regex support in snippets
+		  -- this step is not supported in many windows environments
+		  -- remove the below condition to re-enable on windows
 		  if vim.fn.has 'win32' == 1 then
 		    return
 		  end
@@ -46,59 +46,32 @@ require('lazy').setup({
 	      },
 	      'saadparwaiz1/cmp_luasnip',
 
-	      -- Adds LSP completion capabilities
+	      -- adds lsp completion capabilities
 	      'hrsh7th/cmp-nvim-lsp',
 	      'hrsh7th/cmp-path',
 
-	      -- Adds a number of user-friendly snippets
+	      -- adds a number of user-friendly snippets
 	      'rafamadriz/friendly-snippets',
 	    },
 	  },
-
-	-- Autocompletion
-	'hrsh7th/nvim-cmp',
-
-    dependencies = {
-      -- Snippet Engine & its associated nvim-cmp source
-          {
-            'L3MON4D3/LuaSnip',
-            build = (function()
-              -- Build Step is needed for regex support in snippets
-              -- This step is not supported in many windows environments
-              -- Remove the below condition to re-enable on windows
-              if vim.fn.has 'win32' == 1 then
-                return
-              end
-              return 'make install_jsregexp'
-            end)(),
-          },
-          'saadparwaiz1/cmp_luasnip',
-
-          -- Adds LSP completion capabilities
-          'hrsh7th/cmp-nvim-lsp',
-          'hrsh7th/cmp-path',
-
-          -- Adds a number of user-friendly snippets
-          'rafamadriz/friendly-snippets',
-        },
-	
-	-- Useful plugin to show you pending keybinds.
+		
+	-- useful plugin to show you pending keybinds.
 	{ 'folke/which-key.nvim', opts = {} },
 
 
-	-- Fuzzy Finder (files, lsp, etc)
+	-- fuzzy finder (files, lsp, etc)
 	{
 		'nvim-telescope/telescope.nvim',
 		branch = '0.1.x',
 		dependencies = {
 			'nvim-lua/plenary.nvim',
-			-- Fuzzy Finder Algorithm which requires local dependencies to be built.
-			-- Only load if `make` is available. Make sure you have the system
+			-- fuzzy finder algorithm which requires local dependencies to be built.
+			-- only load if `make` is available. make sure you have the system
 			-- requirements installed.
 			{
 				'nvim-telescope/telescope-fzf-native.nvim',
-				-- NOTE: If you are having trouble with this installation,
-				--       refer to the README for telescope-fzf-native for more instructions.
+				-- note: if you are having trouble with this installation,
+				--       refer to the readme for telescope-fzf-native for more instructions.
 				build = 'make',
 				cond = function()
 				  return vim.fn.executable 'make' == 1
@@ -106,29 +79,55 @@ require('lazy').setup({
 			},
 		},
 	},
+    -- enable autotag closing for html and the like
+    'windwp/nvim-ts-autotag',
 	{
 		'nvim-treesitter/nvim-treesitter',
 		dependencies = {
 			'nvim-treesitter/nvim-treesitter-textobjects',
 		},
-		build = ':TSUpdate',
+		build = ':tsupdate',
 	},
 
-    -- download theme
-    "rebelot/kanagawa.nvim"    
+    -- autopair to close brackets and stuff
+    {
+        'windwp/nvim-autopairs',
+        event = 'insertenter',
+        opts = {}
+    },
+    -- language specific stuff
+    -- odin colorscheme
+    'tetralux/odin.vim',
+
+    -- markdown support
+    'ixru/nvim-markdown',
+
+    -- download themes
+    "rebelot/kanagawa.nvim",
+    
+    "neanias/everforest-nvim"
 })
 
--- Activate theme
-vim.cmd("colorscheme kanagawa")
+-- setup theme
+require('everforest').setup({
+    background = "soft",
+    ui_contrast = "high"
+})
 
--- Enable completion
+-- activate theme
+vim.cmd("colorscheme everforest")
+
+-- setup autotag for treesitter
+require('nvim-ts-autotag').setup()
+
+-- enable completion
 
 -- nvim-cmp supports additional completion capabilities, so broadcast that to servers
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
--- [[ Configure nvim-cmp ]]
--- See `:help cmp`
+-- [[ configure nvim-cmp ]]
+-- see `:help cmp`
 local cmp = require 'cmp'
 local luasnip = require 'luasnip'
 require('luasnip.loaders.from_vscode').lazy_load()
@@ -141,19 +140,20 @@ cmp.setup {
     end,
   },
   completion = {
-    completeopt = 'menu,menuone,noinsert',
+    completeopt = 'menu,menuone,noinsert,noselect',
   },
+  preselect = cmp.PreselectMode.None,
   mapping = cmp.mapping.preset.insert {
-    ['<C-n>'] = cmp.mapping.select_next_item(),
-    ['<C-p>'] = cmp.mapping.select_prev_item(),
-    ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-    ['<C-f>'] = cmp.mapping.scroll_docs(4),
-    ['<C-Space>'] = cmp.mapping.complete {},
-    ['<CR>'] = cmp.mapping.confirm {
-      behavior = cmp.ConfirmBehavior.Replace,
-      select = true,
+    ['<c-n>'] = cmp.mapping.select_next_item(),
+    ['<c-p>'] = cmp.mapping.select_prev_item(),
+    ['<c-b>'] = cmp.mapping.scroll_docs(-4),
+    ['<c-f>'] = cmp.mapping.scroll_docs(4),
+    ['<c-space>'] = cmp.mapping.complete {},
+    ['<cr>'] = cmp.mapping.confirm {
+      behavior = cmp.ConfirmBehavior.replace,
+      select = false,
     },
-    ['<Tab>'] = cmp.mapping(function(fallback)
+    ['<tab>'] = cmp.mapping(function(fallback)
       if cmp.visible() then
         cmp.select_next_item()
       elseif luasnip.expand_or_locally_jumpable() then
@@ -162,7 +162,7 @@ cmp.setup {
         fallback()
       end
     end, { 'i', 's' }),
-    ['<S-Tab>'] = cmp.mapping(function(fallback)
+    ['<s-tab>'] = cmp.mapping(function(fallback)
       if cmp.visible() then
         cmp.select_prev_item()
       elseif luasnip.locally_jumpable(-1) then
@@ -187,32 +187,32 @@ vim.o.smarttab = true
 vim.o.timeoutlen = 150 -- shorten, more convenient for which key
 
 
--- Set highlight on search
+-- set highlight on search
 vim.o.hlsearch = false
 
--- Make line numbers default
+-- make line numbers default
 vim.wo.number = true
 
--- Enable mouse mode
+-- enable mouse mode
 vim.o.mouse = 'a'
 
--- Sync clipboard between OS and Neovim.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
+-- sync clipboard between os and neovim.
+--  remove this option if you want your os clipboard to remain independent.
+--  see `:help 'clipboard'`
 vim.o.clipboard = 'unnamedplus'
 
--- Enable break indent
+-- enable break indent
 vim.o.breakindent = true
 
--- Save undo history
+-- save undo history
 vim.o.undofile = true
 
--- Case-insensitive searching UNLESS \C or capital in search
+-- case-insensitive searching unless \c or capital in search
 vim.o.ignorecase = true
 vim.o.smartcase = true
 
--- We start loading different files now
--- Eg for config plugin and keymap
+-- we start loading different files now
+-- eg for config plugin and keymap
 require("plugins/telescope")
 require("lsp")
 require("keymap")
